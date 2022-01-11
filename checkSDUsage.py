@@ -29,39 +29,46 @@ miner_private_ip = " <your miner's IP> "
 
 
 
+def main():
 
-# SenseCAP API URL construction
-api_host = "https://status.sensecapmx.cloud/"
-api_path = "/api/openapi/device/view_device"
-requrl = api_host + api_path + "?sn=" + sn + "&api_key=" + status_api_key
+    # SenseCAP API URL construction
+    api_host = "https://status.sensecapmx.cloud/"
+    api_path = "/api/openapi/device/view_device"
+    requrl = api_host + api_path + "?sn=" + sn + "&api_key=" + status_api_key
 
-# Creates a list of browser User Agents to prevent rate limiting from some APIs
-try:
-    fakeUA = requests.get(url="https://fake-useragent.herokuapp.com/browsers/0.1.11").text
-    f = open("fakeUserAgents", "w")
-    f.write(fakeUA)
-except:
-    f = open("fakeUserAgents", "r")
-    fakeUA = f.read()
-f.close
-fakeUA = json.loads(fakeUA)['browsers']['chrome'][randrange(1, 40)]
+    # Creates a list of browser User Agents to prevent rate limiting from some APIs
+    try:
+        fakeUA = requests.get(url="https://fake-useragent.herokuapp.com/browsers/0.1.11").text
+        f = open("fakeUserAgents", "w")
+        f.write(fakeUA)
+    except:
+        f = open("fakeUserAgents", "r")
+        fakeUA = f.read()
+    f.close
+    fakeUA = json.loads(fakeUA)['browsers']['chrome'][randrange(1, 40)]
 
-# Send the request to pull SD card usage
-r = requests.get(url=requrl, headers={'User-agent': fakeUA})
-print (r)
-apiData=r.text
-sdTotal = json.loads(apiData)["data"]["sdTotal"]
-sdUsed = json.loads(apiData)["data"]["sdUsed"]
+    # Send the request to pull SD card usage
+    r = requests.get(url=requrl, headers={'User-agent': fakeUA})
+    apiData=r.text
+    print (apiData)
+    sdTotal = json.loads(apiData)["data"]["sdTotal"]
+    sdUsed = json.loads(apiData)["data"]["sdUsed"]
 
-# Calculate usage
-percentageUsed = 100*float(sdUsed)/float(sdTotal)
-print ("SD percentage used: " + str(percentageUsed))
+    # Calculate usage
+    percentageUsed = 100*float(sdUsed)/float(sdTotal)
+    print ("SD percentage used: " + str(percentageUsed))
 
-# Reset blocks if above user-defined threshold
-if (percentageUsed > resyncPercentage):
-    print ("Resetting...")
-    url = "http://" + miner_private_ip +"/resetblocks"
-    header = {"Authorization" : "Basic "+miner_api_key}
-    r = requests.post(url, headers=header)
-else:
-    print ("All good")
+    # Reset blocks if above user-defined threshold
+    if (percentageUsed > resyncPercentage):
+        print ("Resetting...")
+        url = "http://" + miner_private_ip +"/resetblocks"
+        header = {"Authorization" : "Basic "+miner_api_key}
+        r = requests.post(url, headers=header)
+    else:
+        print ("All good")
+
+if __name__ == "__main__":
+    try:
+        main()
+    except:
+        print ("Error pulling data from API. Check connetion or try again later.")

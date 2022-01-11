@@ -71,4 +71,4 @@ if __name__ == "__main__":
     try:
         main()
     except:
-        print ("Error pulling data from API. Check connetion or try again later.")
+        print ("Error pulling data from API. Check connection or try again later.")
